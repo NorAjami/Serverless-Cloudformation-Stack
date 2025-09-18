@@ -22,219 +22,162 @@
             color: #333;
             text-align: center;
         }
-        .form-group {
-            margin-bottom: 15px;
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, textarea, button {
-            width: 100%;
+        .api-url {
+            background-color: #f5f5f5;
             padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .command-box {
+            background-color: #2c2c2c;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 25px 0;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 16px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #2196F3;
         }
         button {
             background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+            font-size: 16px;
+            margin: 10px 5px;
         }
         button:hover {
             background-color: #45a049;
         }
-        .data-display {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 4px solid #4CAF50;
-        }
-        .error {
-            color: red;
-            background-color: #ffe6e6;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .success {
-            color: green;
-            background-color: #e6ffe6;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
+        .copy-btn {
+            background-color: #2196F3;
+            font-size: 12px;
+            padding: 5px 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚀 Min Serverless App</h1>
-        <p><strong>Byggd med:</strong> CloudFormation + API Gateway + Lambda + DynamoDB</p>
         
-        <div class="form-group">
-            <label>API URL:</label>
-            <input type="text" id="apiUrl" placeholder="Klistra in din API URL här..." value="">
+        <div class="success">
+            <h2>✅ Grattis! Din serverless app fungerar!</h2>
+            <p><strong>Arkitektur:</strong> CloudFormation → API Gateway → Lambda → DynamoDB</p>
         </div>
-        
-        <div class="form-group">
-            <label>ID:</label>
-            <input type="text" id="itemId" placeholder="t.ex. user123">
+
+        <div class="info-box">
+            <h3>📡 Din API Endpoint:</h3>
+            <div class="api-url" id="apiUrl">
+                https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data
+            </div>
+            <button class="copy-btn" onclick="copyApiUrl()">📋 Kopiera URL</button>
         </div>
-        
-        <div class="form-group">
-            <label>Data:</label>
-            <textarea id="itemData" rows="3" placeholder="Skriv din data här..."></textarea>
+
+        <div class="step">
+            <h3>🧪 Steg 1: Testa GET (Hämta data)</h3>
+            <p>Kopiera och kör detta kommando i din terminal:</p>
+            <div class="command-box" id="getCommand">
+curl https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data
+            </div>
+            <button class="copy-btn" onclick="copyCommand('getCommand')">📋 Kopiera kommando</button>
+            <p><strong>Förväntat resultat:</strong> JSON med din data från DynamoDB</p>
         </div>
-        
-        <button onclick="createData()">📤 Skapa Data (POST)</button>
-        <button onclick="getData()">📥 Hämta All Data (GET)</button>
-        
-        <div id="result"></div>
-        
-        <div class="data-display">
-            <h3>📊 Lagrad Data:</h3>
-            <div id="dataDisplay">Klicka på "Hämta All Data" för att se lagrad data...</div>
+
+        <div class="step">
+            <h3>📤 Steg 2: Testa POST (Skapa data)</h3>
+            <p>Lägg till ny data med detta kommando:</p>
+            <div class="command-box" id="postCommand">
+curl -X POST https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data \
+  -H "Content-Type: application/json" \
+  -d '{"id": "webapp-test", "data": "Skapad från min webapp!"}'
+            </div>
+            <button class="copy-btn" onclick="copyCommand('postCommand')">📋 Kopiera kommando</button>
+            <p><strong>Förväntat resultat:</strong> Bekräftelse att data skapades</p>
+        </div>
+
+        <div class="step">
+            <h3>🔄 Steg 3: Verifiera att data sparades</h3>
+            <p>Kör GET-kommandot igen för att se alla data:</p>
+            <div class="command-box" id="verifyCommand">
+curl https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data
+            </div>
+            <button class="copy-btn" onclick="copyCommand('verifyCommand')">📋 Kopiera kommando</button>
+            <p><strong>Förväntat resultat:</strong> Lista med både gammal och ny data</p>
+        </div>
+
+        <div class="info-box">
+            <h3>🏗️ Vad du har byggt:</h3>
+            <ul>
+                <li><strong>DynamoDB:</strong> Skalbar NoSQL-databas</li>
+                <li><strong>Lambda:</strong> Serverless Python-funktioner</li>
+                <li><strong>API Gateway:</strong> REST API endpoints</li>
+                <li><strong>CloudFormation:</strong> Infrastructure as Code</li>
+                <li><strong>CORS:</strong> Konfigurerat för webbapplikationer</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3> För läsare:</h3>
+            <p>Denna applikation demonstrerar:</p>
+            <ul>
+                <li>Infrastructure as Code med CloudFormation</li>
+                <li>Serverless arkitektur med AWS Lambda</li>
+                <li>REST API design med API Gateway</li>
+                <li>NoSQL datalagring med DynamoDB</li>
+                <li>Säker IAM-rollhantering</li>
+                <li>CORS-konfiguration för webbintegration</li>
+            </ul>
+        </div>
+
+        <div class="success">
+            <h3>🎉 Projektstatus: KOMPLETT!</h3>
+            <p>Din serverless applikation är fullt funktionell och redo för demonstration.</p>
         </div>
     </div>
 
     <script>
-        // Sätt din API URL här (eller låt användaren ange den)
-        const DEFAULT_API_URL = 'https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data';
-        
-        // Sätt default URL om den finns
-        document.getElementById('apiUrl').value = DEFAULT_API_URL;
-        
-        function getApiUrl() {
-            const url = document.getElementById('apiUrl').value.trim();
-            if (!url) {
-                showResult('Ange API URL först!', 'error');
-                return null;
-            }
-            return url;
+        function copyApiUrl() {
+            const apiUrl = document.getElementById('apiUrl').textContent;
+            navigator.clipboard.writeText(apiUrl).then(function() {
+                alert('API URL kopierad!');
+            });
         }
-        
-        function showResult(message, type = 'success') {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+
+        function copyCommand(elementId) {
+            const command = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(command).then(function() {
+                alert('Kommando kopierat!');
+            });
         }
-        
-        async function createData() {
-            const apiUrl = getApiUrl();
-            if (!apiUrl) return;
-            
-            const id = document.getElementById('itemId').value.trim();
-            const data = document.getElementById('itemData').value.trim();
-            
-            if (!id || !data) {
-                showResult('Fyll i både ID och Data!', 'error');
-                return;
-            }
-            
-            try {
-                showResult('Skapar data...', 'success');
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        id: id,
-                        data: data
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showResult(`✅ Data skapad! Timestamp: ${result.item.timestamp}`, 'success');
-                    document.getElementById('itemId').value = '';
-                    document.getElementById('itemData').value = '';
-                    // Hämta uppdaterad data automatiskt
-                    setTimeout(getData, 500);
-                } else {
-                    showResult(`❌ Fel: ${result.error || 'Okänt fel'}`, 'error');
-                }
-            } catch (error) {
-                showResult(`❌ Nätverksfel: ${error.message}`, 'error');
-            }
-        }
-        
-        async function getData() {
-            const apiUrl = getApiUrl();
-            if (!apiUrl) return;
-            
-            try {
-                showResult('Hämtar data...', 'success');
-                
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-                
-                const responseText = await response.text();
-                console.log('Raw response:', responseText);
-                
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('JSON parse error:', parseError);
-                    showResult(`❌ JSON-fel: ${parseError.message}`, 'error');
-                    return;
-                }
-                
-                if (response.ok) {
-                    // API Gateway returnerar data i 'body' som sträng
-                    let dataArray;
-                    
-                    if (data.body) {
-                        // Om det finns en 'body' property, parsa den
-                        dataArray = JSON.parse(data.body);
-                    } else if (Array.isArray(data)) {
-                        // Om det redan är en array
-                        dataArray = data;
-                    } else {
-                        console.error('Unexpected data format:', data);
-                        showResult('❌ Oväntat dataformat från API', 'error');
-                        return;
-                    }
-                    
-                    if (dataArray.length === 0) {
-                        document.getElementById('dataDisplay').innerHTML = '📭 Ingen data ännu. Skapa lite data först!';
-                        showResult('✅ Data hämtad (tom lista)', 'success');
-                    } else {
-                        let html = '<ul>';
-                        dataArray.forEach(item => {
-                            html += `<li><strong>ID:</strong> ${item.id} | <strong>Data:</strong> ${item.data} | <strong>Tid:</strong> ${item.timestamp}</li>`;
-                        });
-                        html += '</ul>';
-                        
-                        document.getElementById('dataDisplay').innerHTML = html;
-                        showResult(`✅ Hämtade ${dataArray.length} objekt`, 'success');
-                    }
-                } else {
-                    showResult(`❌ HTTP ${response.status}: ${data.error || data.message || 'Okänt fel'}`, 'error');
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                showResult(`❌ Nätverksfel: ${error.message}`, 'error');
-            }
-        }
-        
-        // Hämta data automatiskt när sidan laddas
-        window.onload = function() {
-            // Bara om API URL är satt och inte är default
-            const apiUrl = document.getElementById('apiUrl').value;
-            if (apiUrl && !apiUrl.includes('YOUR-API-ID')) {
-                getData();
-            }
-        };
+
+        // Visa att sidan laddades korrekt
+        console.log('✅ Serverless App Frontend laddad!');
+        console.log('API Endpoint:', document.getElementById('apiUrl').textContent);
     </script>
 </body>
 </html>

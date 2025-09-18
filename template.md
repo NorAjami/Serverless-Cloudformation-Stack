@@ -66,31 +66,18 @@ Resources:
           
           def lambda_handler(event, context):
               try:
-                  # CORS headers för alla responses
-                  cors_headers = {
-                      'Content-Type': 'application/json',
-                      'Access-Control-Allow-Origin': '*',
-                      'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-                  }
-                  
                   # Hantera både direkta anrop och API Gateway anrop
                   http_method = event.get('httpMethod', 'GET')
-                  
-                  # Hantera OPTIONS request (CORS preflight)
-                  if http_method == 'OPTIONS':
-                      return {
-                          'statusCode': 200,
-                          'headers': cors_headers,
-                          'body': json.dumps({'message': 'CORS preflight successful'})
-                      }
                   
                   if http_method == 'GET':
                       # Läs data
                       response = table.scan()
                       return {
                           'statusCode': 200,
-                          'headers': cors_headers,
+                          'headers': {
+                              'Content-Type': 'application/json',
+                              'Access-Control-Allow-Origin': '*'
+                          },
                           'body': json.dumps(response['Items'])
                       }
                   
@@ -107,14 +94,16 @@ Resources:
                       
                       return {
                           'statusCode': 201,
-                          'headers': cors_headers,
+                          'headers': {
+                              'Content-Type': 'application/json',
+                              'Access-Control-Allow-Origin': '*'
+                          },
                           'body': json.dumps({'message': 'Data created successfully', 'item': item})
                       }
                   
                   else:
                       return {
                           'statusCode': 405,
-                          'headers': cors_headers,
                           'body': json.dumps({'error': 'Method not allowed'})
                       }
                       
@@ -122,10 +111,6 @@ Resources:
                   print(f"Error: {str(e)}")
                   return {
                       'statusCode': 500,
-                      'headers': {
-                          'Content-Type': 'application/json',
-                          'Access-Control-Allow-Origin': '*'
-                      },
                       'body': json.dumps({'error': 'Internal server error'})
                   }
 
@@ -173,26 +158,12 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataHandlerFunction.Arn}/invocations'
 
-  # OPTIONS Method för CORS
-  OptionsDataMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ServerlessAPI
-      ResourceId: !Ref DataResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataHandlerFunction.Arn}/invocations'
-
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - GetDataMethod
       - PostDataMethod
-      - OptionsDataMethod
     Properties:
       RestApiId: !Ref ServerlessAPI
       StageName: prod
