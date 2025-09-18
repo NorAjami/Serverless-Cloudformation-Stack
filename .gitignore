@@ -1,0 +1,52 @@
+# AWS CloudFormation
+*.template
+packaged-template.yaml
+.aws-sam/
+
+# AWS CLI och credentials (VIKTIGT - aldrig committa!)
+.aws/
+aws-credentials.txt
+*.pem
+*.key
+
+# Lambda deployment packages
+*.zip
+lambda-deployment-package.zip
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE och editor filer
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS filer
+.DS_Store
+Thumbs.db
+
+# Node.js (om du lägger till JavaScript senare)
+node_modules/
+npm-debug.log*
+
+# Python (om du lägger till Python kod senare)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# CloudFormation outputs och temporära filer
+response.json
+test-payload.json
+output.txt
+
+# Logs
+*.log
+logs/
