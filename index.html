@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Min Serverless App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .data-display {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            color: red;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            background-color: #e6ffe6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Min Serverless App</h1>
+        <p><strong>Byggd med:</strong> CloudFormation + API Gateway + Lambda + DynamoDB</p>
+        
+        <div class="form-group">
+            <label>API URL:</label>
+            <input type="text" id="apiUrl" placeholder="Klistra in din API URL här..." value="">
+        </div>
+        
+        <div class="form-group">
+            <label>ID:</label>
+            <input type="text" id="itemId" placeholder="t.ex. user123">
+        </div>
+        
+        <div class="form-group">
+            <label>Data:</label>
+            <textarea id="itemData" rows="3" placeholder="Skriv din data här..."></textarea>
+        </div>
+        
+        <button onclick="createData()">📤 Skapa Data (POST)</button>
+        <button onclick="getData()">📥 Hämta All Data (GET)</button>
+        
+        <div id="result"></div>
+        
+        <div class="data-display">
+            <h3>📊 Lagrad Data:</h3>
+            <div id="dataDisplay">Klicka på "Hämta All Data" för att se lagrad data...</div>
+        </div>
+    </div>
+
+    <script>
+        // Sätt din API URL här (eller låt användaren ange den)
+        const DEFAULT_API_URL = 'https://tw4vgu21z4.execute-api.eu-west-1.amazonaws.com/prod/data';
+        
+        // Sätt default URL om den finns
+        document.getElementById('apiUrl').value = DEFAULT_API_URL;
+        
+        function getApiUrl() {
+            const url = document.getElementById('apiUrl').value.trim();
+            if (!url) {
+                showResult('Ange API URL först!', 'error');
+                return null;
+            }
+            return url;
+        }
+        
+        function showResult(message, type = 'success') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        async function createData() {
+            const apiUrl = getApiUrl();
+            if (!apiUrl) return;
+            
+            const id = document.getElementById('itemId').value.trim();
+            const data = document.getElementById('itemData').value.trim();
+            
+            if (!id || !data) {
+                showResult('Fyll i både ID och Data!', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Skapar data...', 'success');
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        data: data
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ Data skapad! Timestamp: ${result.item.timestamp}`, 'success');
+                    document.getElementById('itemId').value = '';
+                    document.getElementById('itemData').value = '';
+                    // Hämta uppdaterad data automatiskt
+                    setTimeout(getData, 500);
+                } else {
+                    showResult(`❌ Fel: ${result.error || 'Okänt fel'}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Nätverksfel: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getData() {
+            const apiUrl = getApiUrl();
+            if (!apiUrl) return;
+            
+            try {
+                showResult('Hämtar data...', 'success');
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    showResult(`❌ JSON-fel: ${parseError.message}`, 'error');
+                    return;
+                }
+                
+                if (response.ok) {
+                    // API Gateway returnerar data i 'body' som sträng
+                    let dataArray;
+                    
+                    if (data.body) {
+                        // Om det finns en 'body' property, parsa den
+                        dataArray = JSON.parse(data.body);
+                    } else if (Array.isArray(data)) {
+                        // Om det redan är en array
+                        dataArray = data;
+                    } else {
+                        console.error('Unexpected data format:', data);
+                        showResult('❌ Oväntat dataformat från API', 'error');
+                        return;
+                    }
+                    
+                    if (dataArray.length === 0) {
+                        document.getElementById('dataDisplay').innerHTML = '📭 Ingen data ännu. Skapa lite data först!';
+                        showResult('✅ Data hämtad (tom lista)', 'success');
+                    } else {
+                        let html = '<ul>';
+                        dataArray.forEach(item => {
+                            html += `<li><strong>ID:</strong> ${item.id} | <strong>Data:</strong> ${item.data} | <strong>Tid:</strong> ${item.timestamp}</li>`;
+                        });
+                        html += '</ul>';
+                        
+                        document.getElementById('dataDisplay').innerHTML = html;
+                        showResult(`✅ Hämtade ${dataArray.length} objekt`, 'success');
+                    }
+                } else {
+                    showResult(`❌ HTTP ${response.status}: ${data.error || data.message || 'Okänt fel'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showResult(`❌ Nätverksfel: ${error.message}`, 'error');
+            }
+        }
+        
+        // Hämta data automatiskt när sidan laddas
+        window.onload = function() {
+            // Bara om API URL är satt och inte är default
+            const apiUrl = document.getElementById('apiUrl').value;
+            if (apiUrl && !apiUrl.includes('YOUR-API-ID')) {
+                getData();
+            }
+        };
+    </script>
+</body>
+</html>
